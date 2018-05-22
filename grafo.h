@@ -69,7 +69,7 @@ void libera(Grafo *g)
  */
 int leInstancia(FILE *file, Grafo *g)
 {
-  int i, j, v1, v2, lixo2, qnt, aresta;
+  int i, j, v1, v2, qnt, aresta;
   float lat, log, dist;
   char lixo;
 
@@ -77,6 +77,7 @@ int leInstancia(FILE *file, Grafo *g)
   g->numeroVertices = 0;
   g->grauMaximo = 0;
   fscanf(file, "%c %d %d %d", &lixo, &(g->numeroVertices), &(g->numeroArestas),&(g->grauMaximo));
+  g->numeroVertices++;
 
   g->vertices= malloc(sizeof(Vertice)*(g->numeroVertices));
   for(i=0; i<g->numeroVertices; i++){
@@ -104,11 +105,10 @@ int leInstancia(FILE *file, Grafo *g)
   g->arestas= malloc(sizeof(Aresta)*(g->numeroArestas));
 
   aresta = 0;
-  for(i=0;i<g->numeroVertices;i++){
+  for(i=1;i<g->numeroVertices;i++){
     fscanf(file, "\n%d %f %f %d", &v1, &lat, &log, &qnt);
     printf("%d %f %f %d", v1, lat, log, qnt);
-    v1--;
-    g->vertices[v1].id = v1+1;
+    g->vertices[v1].id = v1;
     g->vertices[v1].latitude = lat;
     g->vertices[v1].longitude = log;
     g->vertices[v1].grauSaida = qnt;
@@ -118,13 +118,12 @@ int leInstancia(FILE *file, Grafo *g)
     for(j=0; j<qnt; j++){
       fscanf(file, "%d %f", &v2, &dist);
       printf(" %d %f", v2, dist);
-      v2--;
       if(g->vertices[v2].grauChegada == 0)
         g->vertices[v2].chegadas = malloc(sizeof(Aresta*)*(g->grauMaximo));
 
       g->arestas[aresta].id = aresta;
-      g->arestas[aresta].chegada = v2+1;
-      g->arestas[aresta].saida = v1+1;
+      g->arestas[aresta].chegada = v2;
+      g->arestas[aresta].saida = v1;
       g->arestas[aresta].distancia = dist;
 
       g->matrizsaida[v1][v2] = aresta;

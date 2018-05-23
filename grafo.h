@@ -61,6 +61,101 @@ void libera(Grafo *g)
   g = NULL;
 }
 
+/** Libera a memoria alocada para um grafo
+ *
+ *  g eh o grafo.
+ */
+void liberaNovo(Grafo *g)
+{
+  int i;
+  for(i=0; i<g->numeroVertices; i++){
+    free(g->vertices[i].saidas);
+  }
+  free(g->vertices);
+  free(g->arestas);
+  free(g);
+  g = NULL;
+}
+
+/** Le a instancia
+ *
+ *  file eh o arquivo de leitura.
+ *  g eh o grafo a ser criado.
+ *  retorna 0 caso tenha dado erro na leitura, 1 caso contrario.
+ */
+int inicializaGrafoNovo(Grafo *g, Grafo *novo)
+{
+  int i;
+
+  novo->numeroArestas = 0;
+  novo->numeroVertices = 0;
+  novo->grauMaximo = 0;
+
+  novo->vertices= malloc(sizeof(Vertice)*(g->numeroVertices));
+  for(i=0; i<g->numeroVertices; i++){
+    novo->vertices[i].id = i;
+    novo->vertices[i].latitude = 0;
+    novo->vertices[i].longitude = 0;
+    novo->vertices[i].grauSaida = 0;
+    novo->vertices[i].saidas = NULL;
+    novo->vertices[i].grauChegada = 0;
+    novo->vertices[i].chegadas = NULL;
+  }
+
+  // g->matrizsaida= malloc(sizeof(int*)*(g->numeroVertices));
+  // g->matrizchegada= malloc(sizeof(int*)*(g->numeroVertices));
+  // for(i=0; i<g->numeroVertices; i++){
+  //   g->matrizsaida[i]= malloc(sizeof(int)*(g->numeroVertices));
+  //   g->matrizchegada[i]= malloc(sizeof(int)*(g->numeroVertices));
+  //   //g->matriz[i] = calloc(g->numeroVertices,sizeof(int));
+
+  //   for(j=0; j<g->numeroVertices; j++){
+  //     g->matrizchegada[i][j] = -1;
+  //     g->matrizsaida[i][j] = -1;
+  //   }
+  // }
+  novo->arestas= malloc(sizeof(Aresta)*(g->numeroArestas));
+
+  // aresta = 0;
+  // for(i=1;i<g->numeroVertices;i++){
+  //   fscanf(file, "\n%d %f %f %d", &v1, &lat, &log, &qnt);
+  //   printf("%d %f %f %d", v1, lat, log, qnt);
+  //   g->vertices[v1].id = v1;
+  //   g->vertices[v1].latitude = lat;
+  //   g->vertices[v1].longitude = log;
+  //   g->vertices[v1].grauSaida = qnt;
+
+  //   g->vertices[v1].saidas = malloc(sizeof(Aresta*)*(g->vertices[v1].grauSaida));
+
+  //   for(j=0; j<qnt; j++){
+  //     fscanf(file, "%d %f", &v2, &dist);
+  //     printf(" %d %f", v2, dist);
+  //     if(g->vertices[v2].grauChegada == 0)
+  //       g->vertices[v2].chegadas = malloc(sizeof(Aresta*)*(g->grauMaximo));
+
+  //     g->arestas[aresta].id = aresta;
+  //     g->arestas[aresta].chegada = v2;
+  //     g->arestas[aresta].saida = v1;
+  //     g->arestas[aresta].distancia = dist;
+
+  //     g->matrizsaida[v1][v2] = aresta;
+  //     g->matrizchegada[v2][v1] = aresta;
+
+  //     g->vertices[v2].chegadas[g->vertices[v2].grauChegada] = &(g->arestas[aresta]);
+  //     g->vertices[v2].grauChegada++;
+      
+  //     g->vertices[v1].saidas[j] = &(g->arestas[aresta]);
+  //     aresta++;
+  //   }
+  //   printf("\n");
+  // }
+
+  // if(aresta != g->numeroArestas) return 0;
+
+  return 1;
+}
+
+
 /** Le a instancia
  *
  *  file eh o arquivo de leitura.
@@ -155,31 +250,31 @@ void imprimeGrafo(Grafo *g)
   int i, j;
   for(i=0; i<g->numeroVertices; i++){
     printf("%d(%f,%f)\n",g->vertices[i].id,g->vertices[i].latitude,g->vertices[i].longitude);
-    if(g->vertices[i].grauSaida>0){
-      printf("\tSAI PARA:\n");
-    }
-    else
-      printf("\tNAO SAI PARA NINGUEM\n");
+    // if(g->vertices[i].grauSaida>0){
+    //   printf("\tSAI PARA:\n");
+    // }
+    // else
+    //   printf("\tNAO SAI PARA NINGUEM\n");
     for(j=0; j<g->vertices[i].grauSaida; j++){
-      printf("\t\ta%d(%d->%d)[%f]\n", 
+      printf("\ta%d(%d->%d)[%f]\n", 
         g->vertices[i].saidas[j]->id,
         g->vertices[i].saidas[j]->saida,
         g->vertices[i].saidas[j]->chegada,
         g->vertices[i].saidas[j]->distancia);
     }
-
-    if(g->vertices[i].grauChegada>0){
-      printf("\tCHEGA DE:\n");
-    }
-    else
-      printf("\tNAO CHEGA DE NINGUEM\n");
-    for(j=0; j<g->vertices[i].grauChegada; j++){
-      printf("\t\ta%d(%d<-%d)[%f]\n", 
-        g->vertices[i].chegadas[j]->id,
-        g->vertices[i].chegadas[j]->chegada,
-        g->vertices[i].chegadas[j]->saida,
-        g->vertices[i].chegadas[j]->distancia);
-    }
+    printf("CHEGAM NELE: %d\n", g->vertices[i].grauChegada);
+    // if(g->vertices[i].grauChegada>0){
+    //   printf("\tCHEGA DE:\n");
+    // }
+    // else
+    //   printf("\tNAO CHEGA DE NINGUEM\n");
+    // for(j=0; j<g->vertices[i].grauChegada; j++){
+    //   printf("\t\ta%d(%d<-%d)[%f]\n", 
+    //     g->vertices[i].chegadas[j]->id,
+    //     g->vertices[i].chegadas[j]->chegada,
+    //     g->vertices[i].chegadas[j]->saida,
+    //     g->vertices[i].chegadas[j]->distancia);
+    // }
     printf("-------------------\n");
   }
 }

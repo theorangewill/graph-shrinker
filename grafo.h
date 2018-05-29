@@ -18,7 +18,7 @@ typedef struct {
   float longitude; /**< Longitude. */
   Aresta **saidas; /**< Arestas que saem do vertice. */
   int grauSaida; /**< Numero de arestas que saem do vertice. */
-  Aresta **chegadas; /**< Arestas que chegam no vertice. */
+  //Aresta **chegadas; /**< Arestas que chegam no vertice. */
   int grauChegada; /**< Numero de arestas que chegam no vertice. */
 }Vertice;
 
@@ -28,8 +28,8 @@ typedef struct {
   matrizchegada[i][j] = a ----> aresta A chega em I e sai de J
 */
 typedef struct {
-  int **matrizchegada; /**< Matriz que associa os vertices as arestas de chegada. */
-  int **matrizsaida; /**< Matriz que associa os vertices as arestas de saida. */
+  //int **matrizchegada; /**< Matriz que associa os vertices as arestas de chegada. */
+  //int **matrizsaida; /**< Matriz que associa os vertices as arestas de saida. */
   Vertice *vertices; /**< Vetor de vertices do grafo. */
   Aresta *arestas; /**< Vetor de arestas do grafo. */
   int numeroVertices; /**< Numero de vertices no grafo. */
@@ -46,17 +46,18 @@ void libera(Grafo *g)
 {
   int i;
   for(i=0; i<g->numeroVertices; i++){
-    free(g->vertices[i].chegadas);
-    free(g->vertices[i].saidas);
+    //free(g->vertices[i].chegadas);
+    if(g->vertices[i].grauSaida != 0)
+      free(g->vertices[i].saidas);
   }
   free(g->vertices);
   free(g->arestas);
   for(i=0; i<g->numeroVertices; i++){
-    free(g->matrizsaida[i]);
-    free(g->matrizchegada[i]);
+    //free(g->matrizsaida[i]);
+    //free(g->matrizchegada[i]);
   }
-  free(g->matrizsaida);
-  free(g->matrizchegada);
+  //free(g->matrizsaida);
+  //free(g->matrizchegada);
   free(g);
   g = NULL;
 }
@@ -99,58 +100,8 @@ int inicializaGrafoNovo(Grafo *g, Grafo *novo)
     novo->vertices[i].grauSaida = 0;
     novo->vertices[i].saidas = NULL;
     novo->vertices[i].grauChegada = 0;
-    novo->vertices[i].chegadas = NULL;
   }
-
-  // g->matrizsaida= malloc(sizeof(int*)*(g->numeroVertices));
-  // g->matrizchegada= malloc(sizeof(int*)*(g->numeroVertices));
-  // for(i=0; i<g->numeroVertices; i++){
-  //   g->matrizsaida[i]= malloc(sizeof(int)*(g->numeroVertices));
-  //   g->matrizchegada[i]= malloc(sizeof(int)*(g->numeroVertices));
-  //   //g->matriz[i] = calloc(g->numeroVertices,sizeof(int));
-
-  //   for(j=0; j<g->numeroVertices; j++){
-  //     g->matrizchegada[i][j] = -1;
-  //     g->matrizsaida[i][j] = -1;
-  //   }
-  // }
   novo->arestas= malloc(sizeof(Aresta)*(g->numeroArestas));
-
-  // aresta = 0;
-  // for(i=1;i<g->numeroVertices;i++){
-  //   fscanf(file, "\n%d %f %f %d", &v1, &lat, &log, &qnt);
-  //   printf("%d %f %f %d", v1, lat, log, qnt);
-  //   g->vertices[v1].id = v1;
-  //   g->vertices[v1].latitude = lat;
-  //   g->vertices[v1].longitude = log;
-  //   g->vertices[v1].grauSaida = qnt;
-
-  //   g->vertices[v1].saidas = malloc(sizeof(Aresta*)*(g->vertices[v1].grauSaida));
-
-  //   for(j=0; j<qnt; j++){
-  //     fscanf(file, "%d %f", &v2, &dist);
-  //     printf(" %d %f", v2, dist);
-  //     if(g->vertices[v2].grauChegada == 0)
-  //       g->vertices[v2].chegadas = malloc(sizeof(Aresta*)*(g->grauMaximo));
-
-  //     g->arestas[aresta].id = aresta;
-  //     g->arestas[aresta].chegada = v2;
-  //     g->arestas[aresta].saida = v1;
-  //     g->arestas[aresta].distancia = dist;
-
-  //     g->matrizsaida[v1][v2] = aresta;
-  //     g->matrizchegada[v2][v1] = aresta;
-
-  //     g->vertices[v2].chegadas[g->vertices[v2].grauChegada] = &(g->arestas[aresta]);
-  //     g->vertices[v2].grauChegada++;
-      
-  //     g->vertices[v1].saidas[j] = &(g->arestas[aresta]);
-  //     aresta++;
-  //   }
-  //   printf("\n");
-  // }
-
-  // if(aresta != g->numeroArestas) return 0;
 
   return 1;
 }
@@ -166,12 +117,11 @@ int leInstancia(FILE *file, Grafo *g)
 {
   int i, j, v1, v2, qnt, aresta;
   float lat, log, dist;
-  char lixo;
 
   g->numeroArestas = 0;
   g->numeroVertices = 0;
   g->grauMaximo = 0;
-  fscanf(file, "%c %d %d %d", &lixo, &(g->numeroVertices), &(g->numeroArestas),&(g->grauMaximo));
+  fscanf(file, "G %d %d %d", &(g->numeroVertices), &(g->numeroArestas),&(g->grauMaximo));
   g->numeroVertices++;
 
   g->vertices= malloc(sizeof(Vertice)*(g->numeroVertices));
@@ -182,55 +132,56 @@ int leInstancia(FILE *file, Grafo *g)
     g->vertices[i].grauSaida = 0;
     g->vertices[i].saidas = NULL;
     g->vertices[i].grauChegada = 0;
-    g->vertices[i].chegadas = NULL;
+    //g->vertices[i].chegadas = NULL;
   }
 
-  g->matrizsaida= malloc(sizeof(int*)*(g->numeroVertices));
-  g->matrizchegada= malloc(sizeof(int*)*(g->numeroVertices));
-  for(i=0; i<g->numeroVertices; i++){
-    g->matrizsaida[i]= malloc(sizeof(int)*(g->numeroVertices));
-    g->matrizchegada[i]= malloc(sizeof(int)*(g->numeroVertices));
-    //g->matriz[i] = calloc(g->numeroVertices,sizeof(int));
+  // g->matrizsaida= malloc(sizeof(int*)*(g->numeroVertices));
+  // g->matrizchegada= malloc(sizeof(int*)*(g->numeroVertices));
+  // for(i=0; i<g->numeroVertices; i++){
+  //   g->matrizsaida[i]= malloc(sizeof(int)*(g->numeroVertices));
+  //   g->matrizchegada[i]= malloc(sizeof(int)*(g->numeroVertices));
+  //   //g->matriz[i] = calloc(g->numeroVertices,sizeof(int));
 
-    for(j=0; j<g->numeroVertices; j++){
-      g->matrizchegada[i][j] = -1;
-      g->matrizsaida[i][j] = -1;
-    }
-  }
+  //   for(j=0; j<g->numeroVertices; j++){
+  //     g->matrizchegada[i][j] = -1;
+  //     g->matrizsaida[i][j] = -1;
+  //   }
+  // }
   g->arestas= malloc(sizeof(Aresta)*(g->numeroArestas));
 
   aresta = 0;
   for(i=1;i<g->numeroVertices;i++){
-    fscanf(file, "\n%d %f %f %d", &v1, &lat, &log, &qnt);
-    printf("%d %f %f %d", v1, lat, log, qnt);
+    fscanf(file, "\nN %d %f %f %d", &v1, &lat, &log, &qnt);
+    //printf("%d %f %f %d", v1, lat, log, qnt);
     g->vertices[v1].id = v1;
     g->vertices[v1].latitude = lat;
     g->vertices[v1].longitude = log;
     g->vertices[v1].grauSaida = qnt;
 
-    g->vertices[v1].saidas = malloc(sizeof(Aresta*)*(g->vertices[v1].grauSaida));
+    if(g->vertices[v1].grauSaida != 0)
+      g->vertices[v1].saidas = malloc(sizeof(Aresta*)*(g->vertices[v1].grauSaida));
 
     for(j=0; j<qnt; j++){
       fscanf(file, "%d %f", &v2, &dist);
-      printf(" %d %f", v2, dist);
-      if(g->vertices[v2].grauChegada == 0)
-        g->vertices[v2].chegadas = malloc(sizeof(Aresta*)*(g->grauMaximo));
+      //printf(" %d %f", v2, dist);
+      //if(g->vertices[v2].grauChegada == 0)
+      //  g->vertices[v2].chegadas = malloc(sizeof(Aresta*)*(g->grauMaximo));
 
       g->arestas[aresta].id = aresta;
       g->arestas[aresta].chegada = v2;
       g->arestas[aresta].saida = v1;
       g->arestas[aresta].distancia = dist;
 
-      g->matrizsaida[v1][v2] = aresta;
-      g->matrizchegada[v2][v1] = aresta;
+      //g->matrizsaida[v1][v2] = aresta;
+      //g->matrizchegada[v2][v1] = aresta;
 
-      g->vertices[v2].chegadas[g->vertices[v2].grauChegada] = &(g->arestas[aresta]);
+      //g->vertices[v2].chegadas[g->vertices[v2].grauChegada] = &(g->arestas[aresta]);
       g->vertices[v2].grauChegada++;
       
       g->vertices[v1].saidas[j] = &(g->arestas[aresta]);
       aresta++;
     }
-    printf("\n");
+    //printf("\n");
   }
 
   if(aresta != g->numeroArestas) return 0;

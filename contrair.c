@@ -8,17 +8,17 @@ void imprimeCaminho(int *caminho, int tam)
   printf("\n");
 }
 
-void imprimeCaminhoNoArquivo(FILE *file_caminhos, int *caminho, int tam, int totalCaminhos, float distancia)
+void imprimeCaminhoNoArquivo(FILE *file_caminhos, int *caminho, int tam, int totalCaminhos, double distancia)
 {
-  fprintf(file_caminhos,"p%d 1 %f 0 %d", totalCaminhos, distancia, tam);
+  fprintf(file_caminhos,"p%d 1 %lf 0 %d", totalCaminhos, distancia, tam);
   for(int i=0; i<tam; i++)
     fprintf(file_caminhos," %d",caminho[i]);
   fprintf(file_caminhos, "\n");
 }
 
-void imprimeCaminhoDuploNoArquivo(FILE *file_caminhos, int *caminho, int tam, int totalCaminhos, float distanciaIda, float distanciaVolta)
+void imprimeCaminhoDuploNoArquivo(FILE *file_caminhos, int *caminho, int tam, int totalCaminhos, double distanciaIda, double distanciaVolta)
 {
-  fprintf(file_caminhos,"p%d 2 %f %f %d", totalCaminhos, distanciaIda, distanciaVolta, tam);
+  fprintf(file_caminhos,"p%d 2 %lf %lf %d", totalCaminhos, distanciaIda, distanciaVolta, tam);
   for(int i=0; i<tam; i++)
     fprintf(file_caminhos," %d",caminho[i]);
   fprintf(file_caminhos, "\n");
@@ -29,15 +29,15 @@ void imprimeGrafoNoArquivo(FILE *file_contraido, Grafo *g, Grafo *novo)
   //TODO tem q arrumar a quantidade de arestas e o de grau maximo
   fprintf(file_contraido,"G %d %d %d\n",g->numeroVertices+novo->numeroVertices-1, g->numeroArestas+novo->numeroArestas, g->grauMaximo);
   for(int i=1; i<g->numeroVertices; i++){
-    fprintf(file_contraido,"N %d %f %f %d", g->vertices[i].id, g->vertices[i].latitude, g->vertices[i].longitude, g->vertices[i].grauSaida);
+    fprintf(file_contraido,"N %d %lf %lf %d", g->vertices[i].id, g->vertices[i].latitude, g->vertices[i].longitude, g->vertices[i].grauSaida);
     for(int j=0; j<g->vertices[i].grauSaida; j++)
-      fprintf(file_contraido," %d %f", g->vertices[i].saidas[j]->chegada, g->vertices[i].saidas[j]->distancia);
+      fprintf(file_contraido," %d %lf", g->vertices[i].saidas[j]->chegada, g->vertices[i].saidas[j]->distancia);
     fprintf(file_contraido, "\n");
   }
   for(int i=0; i<novo->numeroVertices; i++){
-    fprintf(file_contraido,"N %d %f %f %d", novo->vertices[i].id, novo->vertices[i].latitude, novo->vertices[i].longitude, novo->vertices[i].grauSaida);
+    fprintf(file_contraido,"N %d %lf %lf %d", novo->vertices[i].id, novo->vertices[i].latitude, novo->vertices[i].longitude, novo->vertices[i].grauSaida);
     for(int j=0; j<novo->vertices[i].grauSaida; j++)
-      fprintf(file_contraido," %d %f", novo->vertices[i].saidas[j]->chegada, novo->vertices[i].saidas[j]->distancia);
+      fprintf(file_contraido," %d %lf", novo->vertices[i].saidas[j]->chegada, novo->vertices[i].saidas[j]->distancia);
     fprintf(file_contraido, "\n");
   }
 }
@@ -60,7 +60,7 @@ void isolaVertice(Grafo *g, int vertice)
   g->vertices[vertice].grauChegada = 0;
 }
 
-void trocaVizinho(Grafo *g, int vertice, int vizinho, int novo, float distancia)
+void trocaVizinho(Grafo *g, int vertice, int vizinho, int novo, double distancia)
 {
   for(int v=0; v<g->vertices[vertice].grauSaida; v++){
     if(g->vertices[vertice].saidas[v]->chegada == vizinho){  
@@ -71,7 +71,7 @@ void trocaVizinho(Grafo *g, int vertice, int vizinho, int novo, float distancia)
   }
 }
 
-void criaVertice(Grafo *novo, Grafo *g, int vizinho, float distancia)
+void criaVertice(Grafo *novo, Grafo *g, int vizinho, double distancia)
 {
   int indice = novo->numeroVertices;
   int indice2 = novo->numeroArestas;
@@ -96,39 +96,32 @@ void criaVertice(Grafo *novo, Grafo *g, int vizinho, float distancia)
   novo->numeroArestas++;
 }
 
-void criaVertice2(Grafo *novo, Grafo *g, int volta, int ida, float distanciaVolta, float distanciaIda)
+void criaVertice2(Grafo *novo, Grafo *g, int volta, int ida, double distanciaVolta, double distanciaIda)
 {
-  Vertice *vertice = malloc(sizeof(Vertice));
-  vertice->id = g->numeroVertices + novo->numeroVertices;
-  vertice->latitude = 0;
-  vertice->longitude = 0;
-  vertice->grauSaida = 2;
-  vertice->saidas = malloc(sizeof(Aresta)*2);
-  vertice->grauChegada = 2;
-  Aresta *aresta = malloc(sizeof(Aresta));
-  aresta->id = g->numeroArestas + novo->numeroArestas;
-  aresta->chegada = ida;
-  aresta->saida = vertice->id;
-  aresta->distancia = distanciaIda;
-  vertice->saidas[0] = aresta;
+  novo->vertices[novo->numeroVertices].id = g->numeroVertices + novo->numeroVertices;
+  novo->vertices[novo->numeroVertices].latitude = 0;
+  novo->vertices[novo->numeroVertices].longitude = 0;
+  novo->vertices[novo->numeroVertices].grauSaida = 2;
+  novo->vertices[novo->numeroVertices].saidas = malloc(2*sizeof(Aresta *));
+  novo->vertices[novo->numeroVertices].grauChegada = 2;
 
-  novo->vertices[novo->numeroVertices] = *vertice;
-  novo->arestas[novo->numeroArestas] = *aresta;
-  novo->numeroVertices++;
+  novo->arestas[novo->numeroArestas].id = g->numeroArestas + novo->numeroArestas;
+  novo->arestas[novo->numeroArestas].chegada = ida;
+  novo->arestas[novo->numeroArestas].saida = novo->vertices[novo->numeroVertices].id;
+  novo->arestas[novo->numeroArestas].distancia = distanciaIda;
+  novo->vertices[novo->numeroVertices].saidas[0] = &(novo->arestas[novo->numeroArestas]);
   novo->numeroArestas++;
 
-  aresta = malloc(sizeof(Aresta));
-  aresta->id = g->numeroArestas + novo->numeroArestas;
-  aresta->chegada = volta;
-  aresta->saida = vertice->id;
-  aresta->distancia = distanciaVolta;
-  vertice->saidas[1] = aresta;
-  
-  novo->arestas[novo->numeroArestas] = *aresta;
+  novo->arestas[novo->numeroArestas].id = g->numeroArestas + novo->numeroArestas;
+  novo->arestas[novo->numeroArestas].chegada = volta;
+  novo->arestas[novo->numeroArestas].saida = novo->vertices[novo->numeroVertices].id;
+  novo->arestas[novo->numeroArestas].distancia = distanciaVolta;
+  novo->vertices[novo->numeroVertices].saidas[1] = &(novo->arestas[novo->numeroArestas]);
+  novo->numeroVertices++;
   novo->numeroArestas++;
 }
 
-void DFS(Grafo *g, int origem, int vertice, int *caminho, int *tam, float *distancia)
+void DFS(Grafo *g, int origem, int vertice, int *caminho, int *tam, double *distancia)
 {
   int vizinho = g->vertices[vertice].saidas[0]->chegada;
   caminho[*tam] = vertice;
@@ -136,24 +129,27 @@ void DFS(Grafo *g, int origem, int vertice, int *caminho, int *tam, float *dista
   *distancia += g->vertices[vertice].saidas[0]->distancia;
   // printf("%d ", vizinho);
   //printf("%d %d %d\n", vertice, vizinho, g->numeroVertices);
-  if(vizinho >= g->numeroVertices);
-  else if(vizinho == origem){
-    caminho[*tam] = vizinho;
-    (*tam)++;
-    if(*tam > 3) isolaVertice(g,vertice);
-  }
-  else if(g->vertices[vizinho].grauSaida == 1 && g->vertices[vizinho].grauChegada == 1){
-    isolaVertice(g,vertice);
-    DFS(g,origem,vizinho,caminho,tam,distancia);
-  }
-  else if(g->vertices[vizinho].grauSaida != 1 || g->vertices[vizinho].grauChegada != 1){
-    caminho[*tam] = vizinho;
-    (*tam)++;
-    if(*tam > 3) isolaVertice(g,vertice);
+  //if(vizinho >= g->numeroVertices);
+  if(vizinho < g->numeroVertices)
+  {
+    if(vizinho == origem){
+      caminho[*tam] = vizinho;
+      (*tam)++;
+      if(*tam > 3) isolaVertice(g,vertice);
+    }
+    else if(g->vertices[vizinho].grauSaida == 1 && g->vertices[vizinho].grauChegada == 1){
+      isolaVertice(g,vertice);
+      DFS(g,origem,vizinho,caminho,tam,distancia);
+    }
+    else{
+      caminho[*tam] = vizinho;
+      (*tam)++;
+      if(*tam > 3) isolaVertice(g,vertice);
+    }
   }
 }
 
-void DFS2(Grafo *g, int origem, int vertice, int *caminho, int *tam, float *distanciaIda, float *distanciaVolta, int proximo)
+void DFS2(Grafo *g, int origem, int vertice, int *caminho, int *tam, double *distanciaIda, double *distanciaVolta, int proximo)
 {
   int vizinho = g->vertices[vertice].saidas[proximo]->chegada;
   caminho[*tam] = vertice;
@@ -163,32 +159,35 @@ void DFS2(Grafo *g, int origem, int vertice, int *caminho, int *tam, float *dist
 
   //tratar qnd é rua sem saida de mao dupla
   //nao pode isolar antes (tamanho 3)
-  if(vizinho >= g->numeroVertices);
-  else if(vizinho == origem){
-    caminho[*tam] = vizinho;
-    (*tam)++;
-    if(*tam > 3) isolaVertice(g,vertice);
-  }
-  else if(g->vertices[vizinho].grauSaida == 2 && g->vertices[vizinho].grauChegada == 2){
-    if(g->vertices[vizinho].saidas[0]->chegada == vertice){
-      *distanciaVolta += g->vertices[vizinho].saidas[1]->distancia;
-      DFS2(g,origem,vizinho,caminho,tam,distanciaIda,distanciaVolta,1);
-      if(*tam >=4) isolaVertice(g,vertice);
+  //if(vizinho >= g->numeroVertices);
+  if(vizinho < g->numeroVertices)
+  {
+    if(vizinho == origem){
+      caminho[*tam] = vizinho;
+      (*tam)++;
+      if(*tam > 3) isolaVertice(g,vertice);
     }
-    else if(g->vertices[vizinho].saidas[1]->chegada == vertice){
-      *distanciaVolta += g->vertices[vizinho].saidas[0]->distancia;
-      DFS2(g,origem,vizinho,caminho,tam,distanciaIda,distanciaVolta,0);
-      if(*tam >=4) isolaVertice(g,vertice);
-    }
-  }
-  else{
-    for(int i=0; i<g->vertices[vizinho].grauSaida; i++){
-      if(g->vertices[vizinho].saidas[i]->chegada == vertice){
-        caminho[*tam] = vizinho;
-        (*tam)++;
-        *distanciaVolta += g->vertices[vizinho].saidas[i]->distancia;
+    else if(g->vertices[vizinho].grauSaida == 2 && g->vertices[vizinho].grauChegada == 2){
+      if(g->vertices[vizinho].saidas[0]->chegada == vertice){
+        *distanciaVolta += g->vertices[vizinho].saidas[1]->distancia;
+        DFS2(g,origem,vizinho,caminho,tam,distanciaIda,distanciaVolta,1);
         if(*tam >=4) isolaVertice(g,vertice);
-        break;
+      }
+      else if(g->vertices[vizinho].saidas[1]->chegada == vertice){
+        *distanciaVolta += g->vertices[vizinho].saidas[0]->distancia;
+        DFS2(g,origem,vizinho,caminho,tam,distanciaIda,distanciaVolta,0);
+        if(*tam >=4) isolaVertice(g,vertice);
+      }
+    }
+    else{
+      for(int i=0; i<g->vertices[vizinho].grauSaida; i++){
+        if(g->vertices[vizinho].saidas[i]->chegada == vertice){
+          caminho[*tam] = vizinho;
+          (*tam)++;
+          *distanciaVolta += g->vertices[vizinho].saidas[i]->distancia;
+          if(*tam >=4) isolaVertice(g,vertice);
+          break;
+        }
       }
     }
   }
@@ -204,7 +203,7 @@ void contrair(Grafo *g, FILE *file_contraido, FILE *file_caminhos)
   int vertice, vizinho, j;
   int *caminho = malloc(sizeof(int)*g->numeroVertices);
   int tam, totalCaminhos = 1;
-  float distancia;
+  double distancia;
   Grafo *novo;
   novo = malloc(sizeof(Grafo));
   inicializaGrafoNovo(g,novo);
@@ -216,8 +215,8 @@ void contrair(Grafo *g, FILE *file_contraido, FILE *file_caminhos)
     // printf("INICIO: %d ", vertice);
     for(j=0; j<g->vertices[vertice].grauSaida; j++){
       vizinho = g->vertices[vertice].saidas[j]->chegada;
-      if(vizinho >= g->numeroVertices);
-      else if(g->vertices[vizinho].grauSaida == 1  && g->vertices[vizinho].grauChegada == 1){
+      //if(vizinho >= g->numeroVertices);
+      if(vizinho < g->numeroVertices && g->vertices[vizinho].grauSaida == 1  && g->vertices[vizinho].grauChegada == 1){
         distancia = g->vertices[vertice].saidas[j]->distancia;
         // printf("%d ", vizinho);
         DFS(g,vertice,vizinho,caminho,&tam,&distancia);
@@ -244,7 +243,7 @@ void contrair(Grafo *g, FILE *file_contraido, FILE *file_caminhos)
   }
   
   //printf("--------------------------------------------------------\n");
-  float distanciaIda, distanciaVolta;
+  double distanciaIda, distanciaVolta;
   int volta, proximo;
   for(vertice=1; vertice<g->numeroVertices; vertice++){
     caminho[0] = vertice;
@@ -252,8 +251,8 @@ void contrair(Grafo *g, FILE *file_contraido, FILE *file_caminhos)
     //printf("INICIO: %d ", vertice);
     for(j=0; j<g->vertices[vertice].grauSaida; j++){
       vizinho = g->vertices[vertice].saidas[j]->chegada;
-      if(vizinho >= g->numeroVertices);
-      else if(g->vertices[vizinho].grauSaida == 2  && g->vertices[vizinho].grauChegada == 2){
+      //if(vizinho >= g->numeroVertices);
+      if(vizinho < g->numeroVertices && g->vertices[vizinho].grauSaida == 2  && g->vertices[vizinho].grauChegada == 2){
         if(g->vertices[vizinho].saidas[0]->chegada == vertice){
           proximo = 1;
           volta = 0;

@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+/*
+  O progama possui duas estruturas de dados: uma representando o grafo original e um com os vertices contraidos.
+  O grafo final eh os dois grafos mesclados.
+*/
 
 /*! Registro das arestas. */
 typedef struct {
@@ -9,34 +13,59 @@ typedef struct {
   double distancia; /**< Custo da aresta. */
 }Aresta;
 
-
-/*! Registro dos vertices. 
-*/
+/*! Registro dos vertices. */
 typedef struct {
   int id; /**< Identificador do vertice. */
   double latitude; /**< Latitude. */
   double longitude; /**< Longitude. */
   Aresta **saidas; /**< Arestas que saem do vertice. */
   int grauSaida; /**< Numero de arestas que saem do vertice. */
-  //Aresta **chegadas; /**< Arestas que chegam no vertice. */
   int grauChegada; /**< Numero de arestas que chegam no vertice. */
 }Vertice;
 
 
-/*! Registro do grafo. 
-  matrizsaida[i][j] = a ----> aresta A sai de I e chega em J
-  matrizchegada[i][j] = a ----> aresta A chega em I e sai de J
-*/
+/*! Registro do grafo original.*/
 typedef struct {
-  //int **matrizchegada; /**< Matriz que associa os vertices as arestas de chegada. */
-  //int **matrizsaida; /**< Matriz que associa os vertices as arestas de saida. */
   Vertice *vertices; /**< Vetor de vertices do grafo. */
   Aresta *arestas; /**< Vetor de arestas do grafo. */
   int numeroVertices; /**< Numero de vertices no grafo. */
   int numeroArestas; /**< Numero de arestas no grafo. */
-  int grauMaximo; /**< Grau maximo do grao. */
+  int grauMaximo; /**< Grau maximo do grafo. */
 }Grafo;
 
+/*! Registro dos vertices contraidos.*/
+typedef struct {
+  int id; /**< Identificador do vertice. */
+  double latitude; /**< Latitude. */
+  double longitude; /**< Longitude. */
+  Aresta *ida; /**< Arestas que saem do vertice. */
+  int grauSaida; /**< Numero de arestas que saem do vertice. */
+  int grauChegada; /**< Numero de arestas que chegam no vertice. */
+  int *caminho; /**< Caminho que o vertice contrai. */
+  int tamanho; /**< Tamanho do caminho. */
+}VerticeContraido;
+
+/*! Registro dos vertices contraidos de mao dupla*/
+typedef struct {
+  int id; /**< Identificador do vertice. */
+  double latitude; /**< Latitude. */
+  double longitude; /**< Longitude. */
+  Aresta *ida; /**< Aresta que sai do vertice de ida. */
+  Aresta *volta; /**< Aresta que sai do vertice de volta. */
+  int *caminho; /**< Caminho que o vertice contrai. */
+  int tamanho; /**< Tamanho do caminho. */
+}VerticeContraidoDuplo;
+
+/*! Registro do grafo contraido.*/
+typedef struct {
+  VerticeContraido *vertices; /**< Vetor de vertices do grafo. */
+  Aresta *arestas; /**< Vetor de arestas do grafo. */
+  VerticeContraidoDuplo *verticesDuplo; /**< Vetor de vertices de mao dupla do grafo. */
+  int numeroVertices; /**< Numero de vertices no grafo. */
+  int numeroVerticesDuplo; /**< Numero de vertices no grafo. */
+  int numeroArestas; /**< Numero de arestas no grafo. */
+  int grauMaximo; /**< Grau maximo do grao. */
+}Contraido;
 
 /** Libera a memoria alocada para um grafo
  *
@@ -46,63 +75,64 @@ void libera(Grafo *g)
 {
   int i;
   for(i=0; i<g->numeroVertices; i++){
-    //free(g->vertices[i].chegadas);
     if(g->vertices[i].grauSaida != 0)
       free(g->vertices[i].saidas);
   }
   free(g->vertices);
   free(g->arestas);
   for(i=0; i<g->numeroVertices; i++){
-    //free(g->matrizsaida[i]);
-    //free(g->matrizchegada[i]);
   }
-  //free(g->matrizsaida);
-  //free(g->matrizchegada);
   free(g);
   g = NULL;
 }
 
-/** Libera a memoria alocada para um grafo
+/** Libera a memoria alocada para o grafo contraido
  *
- *  g eh o grafo.
+ *  novo eh o grafo.
  */
-void liberaNovo(Grafo *g)
+void liberaNovo(Contraido *novo)
 {
   int i;
-  for(i=0; i<g->numeroVertices; i++)
-    free(g->vertices[i].saidas);
-  free(g->vertices);
-  free(g->arestas);
-  free(g);
-  g = NULL;
+  for(i=0; i<novo->numeroVertices; i++)
+    free(novo->vertices[i].caminho);
+  for(i=0; i<novo->numeroVerticesDuplo; i++)
+    free(novo->verticesDuplo[i].caminho);
+  free(novo->vertices);
+  free(novo->verticesDuplo);
+  free(novo->arestas);
+  free(novo);
+  novo = NULL;
 }
 
-/** Le a instancia
+/** Inicializa o grafo contraido
  *
- *  file eh o arquivo de leitura.
- *  g eh o grafo a ser criado.
- *  retorna 0 caso tenha dado erro na leitura, 1 caso contrario.
+ *  g eh o grafo a ser contraido.
+ *  novo eh o grafo a ser inicializado
  */
-int inicializaGrafoNovo(Grafo *g, Grafo *novo)
+void inicializaGrafoNovo(Grafo *g, Contraido *novo)
 {
   int i;
 
   novo->numeroArestas = 0;
   novo->numeroVertices = 0;
+  novo->numeroVerticesDuplo = 0;
   novo->grauMaximo = 0;
 
-  novo->vertices= malloc(sizeof(Vertice)*(g->numeroVertices));
+  novo->vertices= malloc(sizeof(VerticeContraido)*(g->numeroVertices));
+  novo->verticesDuplo= malloc(sizeof(VerticeContraidoDuplo)*(g->numeroVertices));
   for(i=0; i<g->numeroVertices; i++){
     novo->vertices[i].id = i;
     novo->vertices[i].latitude = 0;
     novo->vertices[i].longitude = 0;
     novo->vertices[i].grauSaida = 0;
-    novo->vertices[i].saidas = NULL;
     novo->vertices[i].grauChegada = 0;
   }
+  for(i=0; i<g->numeroVertices; i++){
+    novo->verticesDuplo[i].id = i;
+    novo->verticesDuplo[i].latitude = 0;
+    novo->verticesDuplo[i].longitude = 0;
+  }
   novo->arestas = malloc(sizeof(Aresta)*(g->numeroArestas));
-
-  return 1;
 }
 
 
@@ -131,27 +161,13 @@ int leInstancia(FILE *file, Grafo *g)
     g->vertices[i].grauSaida = 0;
     g->vertices[i].saidas = NULL;
     g->vertices[i].grauChegada = 0;
-    //g->vertices[i].chegadas = NULL;
   }
 
-  // g->matrizsaida= malloc(sizeof(int*)*(g->numeroVertices));
-  // g->matrizchegada= malloc(sizeof(int*)*(g->numeroVertices));
-  // for(i=0; i<g->numeroVertices; i++){
-  //   g->matrizsaida[i]= malloc(sizeof(int)*(g->numeroVertices));
-  //   g->matrizchegada[i]= malloc(sizeof(int)*(g->numeroVertices));
-  //   //g->matriz[i] = calloc(g->numeroVertices,sizeof(int));
-
-  //   for(j=0; j<g->numeroVertices; j++){
-  //     g->matrizchegada[i][j] = -1;
-  //     g->matrizsaida[i][j] = -1;
-  //   }
-  // }
   g->arestas= malloc(sizeof(Aresta)*(g->numeroArestas));
 
   aresta = 0;
   for(i=1;i<g->numeroVertices;i++){
     fscanf(file, "\nN %d %lf %lf %d", &v1, &lat, &log, &qnt);
-    //printf("%d %lf %lf %d", v1, lat, log, qnt);
     g->vertices[v1].id = v1;
     g->vertices[v1].latitude = lat;
     g->vertices[v1].longitude = log;
@@ -162,69 +178,18 @@ int leInstancia(FILE *file, Grafo *g)
 
     for(j=0; j<qnt; j++){
       fscanf(file, "%d %lf", &v2, &dist);
-      //printf(" %d %lf", v2, dist);
-      //if(g->vertices[v2].grauChegada == 0)
-      //  g->vertices[v2].chegadas = malloc(sizeof(Aresta*)*(g->grauMaximo));
-
       g->arestas[aresta].id = aresta;
       g->arestas[aresta].chegada = v2;
       g->arestas[aresta].saida = v1;
       g->arestas[aresta].distancia = dist;
-
-      //g->matrizsaida[v1][v2] = aresta;
-      //g->matrizchegada[v2][v1] = aresta;
-
-      //g->vertices[v2].chegadas[g->vertices[v2].grauChegada] = &(g->arestas[aresta]);
       g->vertices[v2].grauChegada++;
       
       g->vertices[v1].saidas[j] = &(g->arestas[aresta]);
       aresta++;
     }
-    //printf("\n");
   }
 
   if(aresta != g->numeroArestas) return 0;
 
   return 1;
-}
-
-/** Imprimir o grafo
- *
- *  g eh o grafo a ser impresso na tela.
- */
-void imprimeGrafo(Grafo *g)
-{
-  printf("NUMERO DE VERTICES:\t%d\n", g->numeroVertices);
-  printf("NUMERO DE ARESTAS:\t%d\n", g->numeroArestas);
-  printf("GRAU MAXIMO:\t%d\n", g->grauMaximo);
-  int i, j;
-  for(i=0; i<g->numeroVertices; i++){
-    printf("%d(%lf,%lf)\n",g->vertices[i].id,g->vertices[i].latitude,g->vertices[i].longitude);
-    // if(g->vertices[i].grauSaida>0){
-    //   printf("\tSAI PARA:\n");
-    // }
-    // else
-    //   printf("\tNAO SAI PARA NINGUEM\n");
-    for(j=0; j<g->vertices[i].grauSaida; j++){
-      printf("\ta%d(%d->%d)[%lf]\n", 
-        g->vertices[i].saidas[j]->id,
-        g->vertices[i].saidas[j]->saida,
-        g->vertices[i].saidas[j]->chegada,
-        g->vertices[i].saidas[j]->distancia);
-    }
-    printf("CHEGAM NELE: %d\n", g->vertices[i].grauChegada);
-    // if(g->vertices[i].grauChegada>0){
-    //   printf("\tCHEGA DE:\n");
-    // }
-    // else
-    //   printf("\tNAO CHEGA DE NINGUEM\n");
-    // for(j=0; j<g->vertices[i].grauChegada; j++){
-    //   printf("\t\ta%d(%d<-%d)[%lf]\n", 
-    //     g->vertices[i].chegadas[j]->id,
-    //     g->vertices[i].chegadas[j]->chegada,
-    //     g->vertices[i].chegadas[j]->saida,
-    //     g->vertices[i].chegadas[j]->distancia);
-    // }
-    printf("-------------------\n");
-  }
 }

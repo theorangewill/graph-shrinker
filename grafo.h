@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include<math.h>
+
 /*
   O progama possui duas estruturas de dados: uma representando o grafo original e um com os vertices contraidos.
   O grafo final eh os dois grafos mesclados.
@@ -31,6 +33,7 @@ typedef struct {
   int numeroVertices; /**< Numero de vertices no grafo. */
   int numeroArestas; /**< Numero de arestas no grafo. */
   int grauMaximo; /**< Grau maximo do grafo. */
+  int arestasContraidas;
 }Grafo;
 
 /*! Registro dos vertices contraidos.*/
@@ -152,7 +155,7 @@ int leInstancia(FILE *file, Grafo *g)
   g->grauMaximo = 0;
   fscanf(file, "G %d %d %d", &(g->numeroVertices), &(g->numeroArestas),&(g->grauMaximo));
   g->numeroVertices++;
-
+  g->arestasContraidas = g->numeroArestas;
   g->vertices= malloc(sizeof(Vertice)*(g->numeroVertices));
   for(i=0; i<g->numeroVertices; i++){
     g->vertices[i].id = i;
@@ -172,7 +175,6 @@ int leInstancia(FILE *file, Grafo *g)
     g->vertices[v1].latitude = lat;
     g->vertices[v1].longitude = log;
     g->vertices[v1].grauSaida = qnt;
-
     if(g->vertices[v1].grauSaida != 0)
       g->vertices[v1].saidas = malloc(sizeof(Aresta*)*(g->vertices[v1].grauSaida));
 

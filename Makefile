@@ -1,4 +1,4 @@
-cflags= -c -g -Wall -std=c99 -pedantic -lm
+cflags= -g -Wall -std=c99 -pedantic -lm
 
 compile = gcc
 
@@ -11,12 +11,13 @@ csources = $(class).h $(program).c
 cobjects = $(program).o
 
 $(program): $(cobjects)
-	$(compile) -o $(program) $(cobjects)
+	$(compile) -o $(program) $(cobjects) $(cflags)
 
 $(cobjects): $(csources)
-	$(compile) $^ $(cflags)
+	$(compile)  $^ -c
 
 clean:
+	rm -r $(program).o
 	rm -r $(program)
 	rm -r $(cobjects)
 	rm -r *.h.gch

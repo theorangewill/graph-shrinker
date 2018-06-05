@@ -13,7 +13,7 @@ void imprimeCaminhoNoArquivo(FILE *file_caminhos, Contraido *novo)
   fprintf(file_caminhos,"%d\n",novo->numeroVertices+novo->numeroVerticesDuplo);
   //Caminhos de mao unica: id 1 distancia 0.000 N v1 v2 v3... vn
   for(int j=0; j<novo->numeroVertices; j++){
-    fprintf(file_caminhos,"%d 1 %.3lf %.3lf %d", novo->vertices[j].id, novo->vertices[j].ida->distancia*2, 0.0, novo->vertices[j].tamanho);
+    fprintf(file_caminhos,"%d 1 %.3lf %.3lf %d", novo->vertices[j].id, floor(1000*novo->vertices[j].ida->distancia*2)/1000.0, 0.0, novo->vertices[j].tamanho);
     for(int i=0; i<novo->vertices[j].tamanho; i++)
       fprintf(file_caminhos," %d", novo->vertices[j].caminho[i]);
     fprintf(file_caminhos, "\n");
@@ -21,8 +21,8 @@ void imprimeCaminhoNoArquivo(FILE *file_caminhos, Contraido *novo)
 
   //Caminhos de mao dupla: id 2 distanciaIda distanciaVolta N v1 v2 v3... vn
   for(int j=0; j<novo->numeroVerticesDuplo; j++){
-    fprintf(file_caminhos,"%d 2 %.3lf %.3lf %d", novo->verticesDuplo[j].id, novo->verticesDuplo[j].ida->distancia*2, 
-                                                novo->verticesDuplo[j].volta->distancia*2, novo->verticesDuplo[j].tamanho);
+    fprintf(file_caminhos,"%d 2 %.3lf %.3lf %d", novo->verticesDuplo[j].id, floor(1000*novo->verticesDuplo[j].ida->distancia*2)/1000.0, 
+                                                floor(1000*novo->verticesDuplo[j].volta->distancia*2)/1000.0, novo->verticesDuplo[j].tamanho);
     for(int i=0; i<novo->verticesDuplo[j].tamanho; i++)
       fprintf(file_caminhos," %d", novo->verticesDuplo[j].caminho[i]);
     fprintf(file_caminhos, "\n");
@@ -38,25 +38,25 @@ void imprimeCaminhoNoArquivo(FILE *file_caminhos, Contraido *novo)
 void imprimeGrafoNoArquivo(FILE *file_contraido, Grafo *g, Contraido *novo)
 { 
   //G numero de vertices,numero de arestas, grau maximo
-  fprintf(file_contraido,"G %d %d %d\n",g->numeroVertices+novo->numeroVertices+novo->numeroVerticesDuplo-1, g->numeroArestas, g->grauMaximo);
+  fprintf(file_contraido,"G %d %d %d\n",g->numeroVertices+novo->numeroVertices+novo->numeroVerticesDuplo-1, g->arestasContraidas + novo->numeroVertices + novo->numeroVerticesDuplo*2, g->grauMaximo);
   //Vertices do grafo original, para os vertices q foram contraidos, nao possuem vizinhos
   for(int i=1; i<g->numeroVertices; i++){
     fprintf(file_contraido,"N %d %.7lf %.7lf %d", g->vertices[i].id, g->vertices[i].latitude, g->vertices[i].longitude, g->vertices[i].grauSaida);
     for(int j=0; j<g->vertices[i].grauSaida; j++)
-      fprintf(file_contraido," %d %.3lf", g->vertices[i].saidas[j]->chegada, g->vertices[i].saidas[j]->distancia);
+      fprintf(file_contraido," %d %.3lf", g->vertices[i].saidas[j]->chegada, floor(g->vertices[i].saidas[j]->distancia*1000.0)/1000.0);
     fprintf(file_contraido, "\n");
   }
   //Vertices novos de mao unica
   for(int i=0; i<novo->numeroVertices; i++){
     fprintf(file_contraido,"N %d %.7lf %.7lf 1", novo->vertices[i].id, novo->vertices[i].latitude, novo->vertices[i].longitude);
-    fprintf(file_contraido," %d %.3lf", novo->vertices[i].ida->chegada, novo->vertices[i].ida->distancia);
+    fprintf(file_contraido," %d %.3lf", novo->vertices[i].ida->chegada, floor(1000*novo->vertices[i].ida->distancia)/1000.0);
     fprintf(file_contraido, "\n");
   }
   //Vertices novos de mao dupla
   for(int i=0; i<novo->numeroVerticesDuplo; i++){
     fprintf(file_contraido,"N %d %.7lf %.7lf 2", novo->verticesDuplo[i].id, novo->verticesDuplo[i].latitude, novo->verticesDuplo[i].longitude);
-    fprintf(file_contraido," %d %.3lf", novo->verticesDuplo[i].ida->chegada, novo->verticesDuplo[i].ida->distancia);
-    fprintf(file_contraido," %d %.3lf", novo->verticesDuplo[i].volta->chegada, novo->verticesDuplo[i].volta->distancia);
+    fprintf(file_contraido," %d %.3lf", novo->verticesDuplo[i].ida->chegada, floor(1000*novo->verticesDuplo[i].ida->distancia)/1000.0);
+    fprintf(file_contraido," %d %.3lf", novo->verticesDuplo[i].volta->chegada, floor(1000*novo->verticesDuplo[i].volta->distancia)/1000.0);
     fprintf(file_contraido, "\n");
   }
 }
@@ -71,6 +71,7 @@ void isolaVertice(Grafo *g, int vertice)
   //Libera a memoria do vetor de vizinhos de ida e zera o grau de entrada e saida, isolando-o do resto do grafo
   if(g->vertices[vertice].grauSaida != 0)
     free(g->vertices[vertice].saidas);
+  g->arestasContraidas -= g->vertices[vertice].grauSaida;
   g->vertices[vertice].grauSaida = 0;
   g->vertices[vertice].grauChegada = 0;
 }

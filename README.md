@@ -6,7 +6,7 @@ The red vertices can be replaced by a single vertex to reduce the graph size.
 
 
 ### data
-In the data folder, there are small inputs (.in), which are not real, and also large inputs (.g), which are real.
+In the data folder, there are small inputs (.in), which are not real, and also large inputs (.graph), which are real.
 
 Example of input:
 ```

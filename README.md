@@ -9,10 +9,12 @@ The red vertices can be replaced by a single vertex to reduce the graph size.
 In the data folder, there are small inputs (.in), which are not real, and also large inputs (.g), which are real.
 
 Example of input:
+```
 G 3 4 2
 N 1 0.0 0.0 2 2 0.9 3 0.8
 N 2 1.0 1.0 1 3 1.3
 N 3 2.0 2.0 1 1 9.0
+```
 
 The first line contains information about the graph (G): number of vertices, number of edges and maximum degree. 
 This graph has 3 vertices, 4 edges and 2 as the maximum degree.

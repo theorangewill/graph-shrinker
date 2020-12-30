@@ -1,4 +1,4 @@
-#include "grafo.h"
+#include "graph.h"
 
 int flag;
 
@@ -595,7 +595,7 @@ int main(int argc, char** argv)
 
   /*Verificacao dos parametros*/
   if(argc<4){
-    printf("\nSintaxe: ./contrair <entrada> <contraido> <caminhos> \n");
+    printf("\nSintax: ./shrink <input> <shrinked> <paths> \n");
     return 1;
   }
 

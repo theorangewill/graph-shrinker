@@ -2,9 +2,9 @@ cflags= -g -Wall -std=c99 -pedantic -lm
 
 compile = gcc
 
-program = contrair
+program = shrink
 
-class = grafo
+class = graph
 
 csources = $(class).h $(program).c 
 
